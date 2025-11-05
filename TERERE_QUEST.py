@@ -16,7 +16,7 @@ contador_victorias = 0
 #Pantalla principal
 ANCHO, ALTO = 800, 600
 pantalla = pygame.display.set_mode((ANCHO, ALTO))
-pygame.display.set_caption("MAKING TERERE")
+pygame.display.set_caption("TERERE QUEST")
 reloj = pygame.time.Clock()
 FPS = 10
 
@@ -159,8 +159,7 @@ def pantalla_3():
                     if jugador_seleccionado == 0:
                         pantalla_personaje_Juan()
                     elif jugador_seleccionado == 1:
-                        print("")    
-                        #pantalla_personaje_Jeremy()
+                        pantalla_personaje_Jeremy()
                     elif jugador_seleccionado == 2:
                         pantalla_personaje_Navi()
                     elif jugador_seleccionado == 3:
@@ -741,218 +740,263 @@ def pantalla_personaje_Juan():
         sys.exit()
 
 #1
+def pantalla_personaje_Jeremy():
 
-"""def pantalla_personaje_Jeremy():
-    TIEMPO_TOTAL = 30000    # Tiempo total del juego en ms (30 segundos por ejemplo
-    pygame.display.set_caption("🕳 San Lorenzo - Esquivar")
-    reloj = pygame.time.Clock()
-    FPS = 60
+    # === UTILIDAD DE RUTAS SEGURAS ===
+    BASE_DIR = Path(__file__).resolve().parent
+    def asset_path(*parts) -> str:
+        return str(BASE_DIR.joinpath(*parts))
 
-    BLANCO = (255, 255, 255)
-    ROJO = (255, 50, 50)
-    VERDE = (50, 255, 50)
-    GRIS = (50, 50, 50)
-
-    fuente = pygame.font.Font(None, 36)
-
-    # ==========================
-    # CARGA DE IMÁGENES
-    # ==========================
-    imagen_jugador = pygame.image.load("static/personaje_spritesheet.png").convert_alpha()
-    sprite_num_frames = 4  # Número de frames en tu spritesheet horizontal
-    sprite_frame_width = imagen_jugador.get_width() // sprite_num_frames
-    sprite_frame_height = imagen_jugador.get_height()
-    frames_jugador = [imagen_jugador.subsurface(pygame.Rect(i*sprite_frame_width, 0, sprite_frame_width, sprite_frame_height)) for i in range(sprite_num_frames)]
-    
-    imagen_bache = pygame.image.load("static/Bache.png").convert_alpha()
-    imagen_bache = pygame.transform.scale(imagen_bache, (120, 90))  # Baches más grandes
-
-    imagen_corazon = pygame.image.load("static/corazon.png").convert_alpha()
-    imagen_corazon = pygame.transform.scale(imagen_corazon, (30, 30))
-
-    def cargar_fondo(ruta, color=(0,0,0)):
-        try:
-            fondo = pygame.image.load(ruta).convert()
-            return pygame.transform.scale(fondo, (ANCHO, ALTO))
-        except:
-            f = pygame.Surface((ANCHO, ALTO))
-            f.fill(color)
-            return f
-
-    fondo_inicio = cargar_fondo("static/fondo_inicio_SL.png", (30,30,30))
-    fondo_juego = cargar_fondo("static/Fondo1_SL.png", (0,0,0))
-    fondo_victoria = cargar_fondo("static/fondo_victoria_SL.png", (0,0,0))
-    fondo_derrota = cargar_fondo("static/fondo_derrota_SL.png", (50,0,0))
-
-    try:
-        pygame.mixer.music.load("static/musica_fondo2.mp3")
-        pygame.mixer.music.play(-1)
-    except:
-        pass
-
-    # ==========================
-    # FUNCIONES DE ESTADOS
-    # ==========================
-    def pantalla_inicio():
-        while True:
-            for e in pygame.event.get():
-                if e.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if e.type == pygame.KEYDOWN:
-                    if e.key == pygame.K_SPACE:
-                        pantalla_juego()
-                        return
-                    if e.key == pygame.K_ESCAPE:
-                        pygame.quit()
-                        sys.exit()
-            pantalla.blit(fondo_inicio, (0,0))
-            texto = fuente.render("Presiona ESPACIO para comenzar", True, BLANCO)
-            pantalla.blit(texto, (ANCHO//2 - texto.get_width()//2, ALTO//2 + 230))
-            pygame.display.flip()
-            reloj.tick(FPS)
-
-    def pantalla_juego():
+    # === FUNCIÓN PRINCIPAL ===
+    def pantalla_personaje_Jeremy():
         global contador_victorias
-        jugador = pygame.Rect(ANCHO//2 - 50, ALTO - 120, 100, 100)
-        baches = []
-        vidas = 5
-        puntaje = 0
-        meta = 20
-        bache_timer = 0
-        tiempo_restante = TIEMPO_TOTAL
+        pygame.display.set_caption("🕳 San Lorenzo - Esquivar")
+        FPS = 60
 
-        frame_actual = 0
-        tiempo_animacion = 0
+        fuente = pygame.font.Font(None, 36)
 
-        while True:
-            dt = reloj.tick(FPS)
-            tiempo_restante -= dt
-            if tiempo_restante <= 0:
-                pantalla_victoria()
-                return
+        # --- FONDOS ---
+        def cargar_fondo(rel_path, color=(0,0,0)):
+            ruta = asset_path(rel_path)
+            try:
+                img = pygame.image.load(ruta).convert()
+                return pygame.transform.scale(img, (ANCHO, ALTO))
+            except Exception as e:
+                print(f"[WARN] No se pudo cargar {ruta}: {e}")
+                surf = pygame.Surface((ANCHO, ALTO))
+                surf.fill(color)
+                return surf
 
-            for e in pygame.event.get():
-                if e.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+        fondo_inicio   = cargar_fondo("static/fondo_inicio_SL.png", (30, 30, 30))
+        fondo_juego    = cargar_fondo("static/Fondo1_SL.png",       (0, 0, 0))
+        fondo_derrota  = cargar_fondo("static/fondo_derrota_SL.png",(50, 0, 0))
+        video_victoria = VideoFileClip("static/Video-Victoria-SL.mp4").resized((ANCHO, ALTO))
 
-            teclas = pygame.key.get_pressed()
-            if teclas[pygame.K_LEFT]:
-                jugador.x -= 8
-            if teclas[pygame.K_RIGHT]:
-                jugador.x += 8
-            if jugador.left < 0:
-                jugador.left = 0
-            if jugador.right > ANCHO:
-                jugador.right = ANCHO
+        # --- SPRITESHEET ANIMADO DEL JUGADOR ---
+        COLUMNS = 4
+        ROWS    = 2
+        FRAME_SIZE = (100, 100)
 
-            bache_timer += dt
-            if bache_timer > 800:
-                bache_timer = 0
-                x = random.randint(0, ANCHO - 120)
-                baches.append(pygame.Rect(x, -90, 120, 90))
+        def parse_spritesheet(sheet: pygame.Surface, columns: int, rows: int, scale_to):
+            frames = []
+            sw, sh = sheet.get_width(), sheet.get_height()
+            fw, fh = sw // columns, sh // rows
+            for r in range(rows):
+                for c in range(columns):
+                    rect = pygame.Rect(c * fw, r * fh, fw, fh)
+                    frame = sheet.subsurface(rect)
+                    frame = pygame.transform.scale(frame, scale_to)
+                    frames.append(frame)
+            return frames
 
-            pantalla.blit(fondo_juego, (0,0))
-
-            # Animación del jugador
-            tiempo_animacion += dt
-            if tiempo_animacion > 100:
-                tiempo_animacion = 0
-                frame_actual = (frame_actual + 1) % sprite_num_frames
-            pantalla.blit(frames_jugador[frame_actual], (jugador.x, jugador.y))
-
-            for b in baches[:]:
-                b.y += 5
-                pantalla.blit(imagen_bache, (b.x, b.y))
-                if b.colliderect(jugador):
-                    vidas -= 1
-                    baches.remove(b)
-                    if vidas <= 0:
-                        pantalla_derrota()
-                        return
-                elif b.y > ALTO:
-                    baches.remove(b)
-                    puntaje += 1
-                    if puntaje >= meta:
-                        pantalla_victoria()
-                        return
-
-            # Dibujar vidas
-            for i in range(vidas):
-                pantalla.blit(imagen_corazon, (10 + i*40, 10))
-
-            # Barra de tiempo arriba a la derecha
-            barra_ancho = 200
-            barra_alto = 20
-            tiempo_porcentaje = max(tiempo_restante/TIEMPO_TOTAL, 0)
-            pygame.draw.rect(pantalla, GRIS, (ANCHO - barra_ancho - 10, 10, barra_ancho, barra_alto))
-            pygame.draw.rect(pantalla, VERDE, (ANCHO - barra_ancho - 10, 10, barra_ancho*tiempo_porcentaje, barra_alto))
-
-            pygame.display.flip()
-
-    def pantalla_victoria():
-        global contador_victorias
-        contador_victorias += 1
-
-        VIDEO_PATH = "static/Video-Victoria-SL.mp4"
         try:
-            pygame.mixer.music.stop()
-            clip = VideoFileClip(VIDEO_PATH, audio=False)
-            for frame in clip.iter_frames(fps=FPS):
+            ss_img = pygame.image.load(asset_path("static", "personaje_spritesheet.png")).convert_alpha()
+            all_frames = parse_spritesheet(ss_img, COLUMNS, ROWS, FRAME_SIZE)
+            jugador_frames = {"idle": all_frames[0:4], "move": all_frames[4:8]}
+        except Exception as e:
+            print(f"[WARN] No se pudo cargar spritesheet: {e}")
+            fallback = pygame.Surface(FRAME_SIZE, pygame.SRCALPHA)
+            fallback.fill(VERDE)
+            jugador_frames = {"idle": [fallback], "move": [fallback]}
+
+        # --- IMAGENES Y AUDIO ---
+        try:
+            bache_img = pygame.image.load(asset_path("static", "bache.png")).convert_alpha()
+            bache_img = pygame.transform.scale(bache_img, (80, 60))
+        except Exception:
+            bache_img = pygame.Surface((80, 60)); bache_img.fill(ROJO)
+
+        try:
+            corazon_img = pygame.image.load(asset_path("static", "corazon.png")).convert_alpha()
+            corazon_img = pygame.transform.scale(corazon_img, (32, 32))
+        except Exception:
+            corazon_img = None
+
+        img_golpe = None
+
+        try:
+            pygame.mixer.music.load(asset_path("static", "musica_fondo.mp3"))
+            pygame.mixer.music.play(-1)
+        except Exception as e:
+            print(f"[WARN] Música no cargada: {e}")
+
+        try:
+            snd_victoria = pygame.mixer.Sound(asset_path("static", "victoria.mp3"))
+        except Exception:
+            snd_victoria = None
+
+        # === PANTALLA INICIO ===
+        def pantalla_inicio():
+            while True:
                 for e in pygame.event.get():
                     if e.type == pygame.QUIT:
-                        pygame.quit()
-                        sys.exit()
-                    if e.type == pygame.MOUSEBUTTONDOWN:
-                        clip.close()
-                        pantalla_3()
-                        return
-                frame_surface = pygame.image.frombuffer(frame.tobytes(), (clip.w, clip.h), "RGB")
-                frame_surface = pygame.transform.scale(frame_surface, (ANCHO, ALTO))
-                pantalla.blit(frame_surface, (0,0))
-                texto = fuente.render("Haz clic para continuar", True, BLANCO)
-                pantalla.blit(texto, (ANCHO//2 - texto.get_width()//2, ALTO-80))
+                        pygame.quit(); sys.exit()
+                    if e.type == pygame.KEYDOWN:
+                        if e.key == pygame.K_SPACE:
+                            pantalla_juego(); return
+                        if e.key == pygame.K_ESCAPE:
+                            pygame.quit(); sys.exit()
+
+                pantalla.blit(fondo_inicio, (0, 0))
+                texto = fuente.render("Presiona ESPACIO para comenzar", True, BLANCO)
+                pantalla.blit(texto, (ANCHO//2 - texto.get_width()//2, ALTO//2 + 230))
                 pygame.display.flip()
                 reloj.tick(FPS)
-            clip.close()
-        except:
-            pantalla.blit(fondo_victoria, (0,0))
-            texto = fuente.render("Haz clic para continuar", True, BLANCO)
-            pantalla.blit(texto, (ANCHO//2 - texto.get_width()//2, ALTO-80))
-            pygame.display.flip()
-            esperando = True
-            while esperando:
+
+        # === PANTALLA JUEGO ===
+        def pantalla_juego():
+            global contador_victorias  # ✅ necesario para modificar la variable global
+
+            jugador_rect = pygame.Rect(0, 0, FRAME_SIZE[0], FRAME_SIZE[1])
+            jugador_rect.midbottom = (ANCHO // 2, ALTO - 20)
+            vel = 8
+            mirando_izq = False
+            anim_state, anim_index = "idle", 0
+            anim_last = pygame.time.get_ticks()
+            anim_speed_idle, anim_speed_move = 200, 100
+
+            baches = []
+            vidas, puntaje, meta = 5, 0, 20
+            bache_timer = 0
+
+            while True:
+                dt = reloj.tick(FPS)
+                for e in pygame.event.get():
+                    if e.type == pygame.QUIT:
+                        pygame.quit(); sys.exit()
+
+                # Movimiento + animación
+                mov = 0
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_LEFT]:
+                    mov -= vel; mirando_izq = True
+                if keys[pygame.K_RIGHT]:
+                    mov += vel; mirando_izq = False
+
+                jugador_rect.x += mov
+                anim_state = "move" if mov != 0 else "idle"
+                if jugador_rect.left < 0: jugador_rect.left = 0
+                if jugador_rect.right > ANCHO: jugador_rect.right = ANCHO
+
+                # Spawn baches
+                bache_timer += dt
+                if bache_timer > 800:
+                    bache_timer = 0
+                    x = random.randint(0, ANCHO - bache_img.get_width())
+                    rect = bache_img.get_rect(topleft=(x, -bache_img.get_height()))
+                    baches.append({"rect": rect, "vel": 5})
+
+                pantalla.blit(fondo_juego, (0, 0))
+
+                # Animación jugador
+                now = pygame.time.get_ticks()
+                speed = anim_speed_move if anim_state == "move" else anim_speed_idle
+                frames = jugador_frames[anim_state]
+                if now - anim_last >= speed:
+                    anim_last = now
+                    anim_index = (anim_index + 1) % len(frames)
+                frame_img = frames[anim_index]
+                if mirando_izq:
+                    frame_img = pygame.transform.flip(frame_img, True, False)
+                pantalla.blit(frame_img, jugador_rect)
+
+                # Baches
+                for b in baches[:]:
+                    b["rect"].y += b["vel"]
+                    pantalla.blit(bache_img, b["rect"])
+
+                    if b["rect"].colliderect(jugador_rect):
+                        vidas -= 1
+                        if img_golpe:
+                            pantalla.blit(img_golpe, img_golpe.get_rect(center=jugador_rect.center))
+                            pygame.display.flip()
+                            pygame.time.delay(250)
+                        baches.remove(b)
+                        if vidas <= 0:
+                            pantalla_derrota(); return
+
+                    elif b["rect"].top > ALTO:
+                        baches.remove(b)
+                        puntaje += 1
+                        if puntaje >= meta:
+                            if snd_victoria: snd_victoria.play()
+                            pantalla_victoria(); return
+
+                # HUD
+                if corazon_img:
+                    for i in range(vidas):
+                        pantalla.blit(corazon_img, (10 + i * 36, 10))
+                else:
+                    for i in range(vidas):
+                        pygame.draw.circle(pantalla, ROJO, (30 + i*40, 30), 15)
+
+                pts = fuente.render(f"Puntos: {puntaje}/{meta}", True, BLANCO)
+                pantalla.blit(pts, (ANCHO - 220, 20))
+                pygame.display.flip()
+
+        # === PANTALLA VICTORIA ===
+        def pantalla_victoria():
+            global contador_victorias
+            contador_victorias += 1  # ✅ Aumenta el contador al entrar
+
+            # Reproducir video frame por frame
+            for frame in video_victoria.iter_frames(fps=FPS, dtype='uint8'):
                 for e in pygame.event.get():
                     if e.type == pygame.QUIT:
                         pygame.quit()
                         sys.exit()
                     if e.type == pygame.MOUSEBUTTONDOWN:
-                        esperando = False
-                        pantalla_3()
+                        pantalla_3()  # Ir a la siguiente pantalla al hacer click
+                        return
 
-    def pantalla_derrota():
-        while True:
-            for e in pygame.event.get():
-                if e.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if e.type == pygame.KEYDOWN:
-                    if e.key == pygame.K_ESCAPE:
+                # Convertir frame de MoviePy a superficie de Pygame
+                frame_surf = pygame.surfarray.make_surface(frame.swapaxes(0, 1))
+                pantalla.blit(frame_surf, (0, 0))
+
+                # Textos encima del video
+                t3 = fuente.render("Haz clic para continuar", True, BLANCO)
+                pantalla.blit(t3, t3.get_rect(center=(ANCHO//2, ALTO - 80)))
+
+                pygame.display.flip()
+                reloj.tick(FPS)
+
+            # Cuando termine el video, esperar click para continuar
+            esperando_click = True
+            while esperando_click:
+                for e in pygame.event.get():
+                    if e.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+                    if e.type == pygame.MOUSEBUTTONDOWN:
                         pantalla_3()
                         return
-                    if e.key == pygame.K_r:
-                        pantalla_personaje_Jeremy()
-                        return
-            pantalla.blit(fondo_derrota, (0, 0))
-            texto1 = fuente.render("Presiona ESC para volver", True, BLANCO)
-            texto2 = fuente.render("Presiona R para intentarlo nuevamente", True, BLANCO)
-            pantalla.blit(texto1, (ANCHO // 2 - texto1.get_width() // 2, ALTO // 2 + 200))
-            pantalla.blit(texto2, (ANCHO // 2 - texto2.get_width() // 2, ALTO // 2 + 250))
-            pygame.display.flip()
-            reloj.tick(FPS)
+                reloj.tick(FPS)
+        # === PANTALLA DERROTA ===
+        def pantalla_derrota():
+            while True:
+                for e in pygame.event.get():
+                    if e.type == pygame.QUIT:
+                        pygame.quit(); sys.exit()
+                    if e.type == pygame.KEYDOWN:
+                        if e.key == pygame.K_ESCAPE:
+                            pantalla_3(); return  # ESC para volver
+                        if e.key == pygame.K_r:
+                            pantalla_personaje_Jeremy(); return  # R para intentar nuevamente
 
-"""
+                pantalla.blit(fondo_derrota, (0, 0))
+                t1 = fuente.render("Presiona ESC para volver", True, BLANCO)
+                t2 = fuente.render("Presiona R para intentarlo nuevamente", True, BLANCO)
+                pantalla.blit(t1, t1.get_rect(center=(ANCHO//2, ALTO//2 + 160)))
+                pantalla.blit(t2, t2.get_rect(center=(ANCHO//2, ALTO//2 + 200)))
+                pygame.display.flip()
+                reloj.tick(FPS)
+        # Inicia desde pantalla inicio
+        pantalla_inicio()
+
+    # === EJECUTAR ===
+    if __name__ == "__main__":
+        pantalla_personaje_Jeremy()
+
 #2
 def pantalla_personaje_Navi():
     # Cargar imágenes
@@ -1186,7 +1230,7 @@ def pantalla_personaje_Johana():
         pygame.draw.rect(bala_img_original, (255, 0, 0), (0, 0, 30, 10))
 
     try:
-        VICTORY_VIDEO_PATH = asset_path("static", "Video-Victoria-Sl.mp4")
+        VICTORY_VIDEO_PATH = asset_path("static", "Video-Victoria-PJ.mp4")
         video_clip = VideoFileClip(str(VICTORY_VIDEO_PATH), audio=True).resized((ANCHO, ALTO))
         pygame.mixer.init()
     except Exception as e:
@@ -1590,8 +1634,8 @@ def pantalla_personaje_Aquiles():
                 pantalla.blit(cerdo_img, rect.topleft)
 
             pantalla.blit(imgs[anim_index], aquiles_rect.topleft)
-            pantalla.blit(font.render(f"Cerdos atrapados: {score}/10", True, (0,0,255)), (20, 50))
-            pantalla.blit(font.render(f"Tiempo: {segundos}", True, (0,255,0)), (20, 20))
+            pantalla.blit(fuente_titulo.render(f"Cerdos atrapados: {score}/10", True, GRIS), (20, 50))
+            pantalla.blit(fuente_titulo.render(f"Tiempo: {segundos}", True, GRIS), (20, 20))
             pygame.display.flip()
 
     pantalla_inicio()
